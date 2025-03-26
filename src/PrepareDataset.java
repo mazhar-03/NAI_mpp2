@@ -64,20 +64,22 @@ public class PrepareDataset {
             String line;
             int rowIndex = 0;
 
-            // Skip the header row
+            // skip the header row
             br.readLine();
 
             while ((line = br.readLine()) != null && rowIndex <= 101) { // only the first 100 rows, not virginica
                 rowIndex++;
                 String[] values = line.split(",");
-                double feature1 = Double.parseDouble(values[0]); // Example: Sepal Length
-                double feature2 = Double.parseDouble(values[1]); // Example: Sepal Width
+                double sepal_length = Double.parseDouble(values[0]); 
+                double sepal_width = Double.parseDouble(values[1]);
+                double petal_length = Double.parseDouble(values[2]);
+                double petal_width = Double.parseDouble(values[3]);
                 String label = values[4];  // Class label
 
-                // Convert labels (setosa = 1, versicolor = 0)
+                // setosa = 1, versicolor = 0
                 int numericLabel = label.equals("Iris-setosa") ? 1 : 0;
 
-                data.add(new double[]{feature1, feature2});
+                data.add(new double[]{sepal_length, sepal_width, petal_length, petal_width});
                 labels.add(numericLabel);
             }
         } catch (IOException e) {

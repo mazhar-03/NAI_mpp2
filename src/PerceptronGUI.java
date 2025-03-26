@@ -1,14 +1,13 @@
 import javax.swing.*;
 import java.awt.*;
-import java.awt.event.ActionEvent;
-import java.awt.event.ActionListener;
 
 public class PerceptronGUI extends JFrame {
-    private JTextField feature1Field, feature2Field;
-    private JLabel resultLabel;
-    private Perceptron perceptron;
-    private double[][] testData;
-    private int[] testLabels;
+    private final JTextField feature1Field, feature2Field, feature3Field, feature4Field;
+    private final JLabel resultLabel;
+    private final Perceptron perceptron;
+    private final double[][] testData;
+    private final int[] testLabels;
+    private final JComboBox<String> feature1ComboBox, feature2ComboBox;
 
     public PerceptronGUI(Perceptron perceptron, double[][] testData, int[] testLabels) {
         this.perceptron = perceptron;
@@ -16,81 +15,83 @@ public class PerceptronGUI extends JFrame {
         this.testLabels = testLabels;
 
         setTitle("Iris Classification");
-        setSize(400, 250);
+        setSize(500, 350);
         setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
         setLocationRelativeTo(null);
 
-        // Main content panel
         JPanel panel = new JPanel(new GridBagLayout());
         panel.setBorder(BorderFactory.createEmptyBorder(10, 10, 10, 10));
         GridBagConstraints gbc = new GridBagConstraints();
         gbc.insets = new Insets(8, 8, 8, 8);
         gbc.fill = GridBagConstraints.HORIZONTAL;
 
-        // Row 1: Feature 1
-        gbc.gridx = 0;
-        gbc.gridy = 0;
-        panel.add(new JLabel("Feature 1:"), gbc);
-
-        gbc.gridx = 1;
-        feature1Field = new JTextField();
+        // Feature inputs
+        gbc.gridx = 0; gbc.gridy = 0;
+        panel.add(new JLabel("Sepal Length): "), gbc);
+        feature1Field = new JTextField(); gbc.gridx = 1;
         panel.add(feature1Field, gbc);
 
-        // Row 2: Feature 2
-        gbc.gridx = 0;
-        gbc.gridy = 1;
-        panel.add(new JLabel("Feature 2:"), gbc);
-
-        gbc.gridx = 1;
-        feature2Field = new JTextField();
+        gbc.gridx = 0; gbc.gridy = 1;
+        panel.add(new JLabel("Sepal Width: "), gbc);
+        feature2Field = new JTextField(); gbc.gridx = 1;
         panel.add(feature2Field, gbc);
 
-        // Row 3: Predict button
-        gbc.gridx = 0;
-        gbc.gridy = 2;
-        gbc.gridwidth = 2;
+        gbc.gridx = 0; gbc.gridy = 2;
+        panel.add(new JLabel("Petal Length: "), gbc);
+        feature3Field = new JTextField(); gbc.gridx = 1;
+        panel.add(feature3Field, gbc);
+
+        gbc.gridx = 0; gbc.gridy = 3;
+        panel.add(new JLabel("Petal Width: "), gbc);
+        feature4Field = new JTextField(); gbc.gridx = 1;
+        panel.add(feature4Field, gbc);
+
+        // Feature selection for plot
+        gbc.gridx = 0; gbc.gridy = 4;
+        panel.add(new JLabel("Select Feature for X-axis:"), gbc);
+        feature1ComboBox = new JComboBox<>(new String[]{"Sepal Length", "Sepal Width", "Petal Length", "Petal Width"});
+        gbc.gridx = 1;
+        panel.add(feature1ComboBox, gbc);
+
+        gbc.gridx = 0; gbc.gridy = 5;
+        panel.add(new JLabel("Select Feature for Y-axis:"), gbc);
+        feature2ComboBox = new JComboBox<>(new String[]{"Sepal Length", "Sepal Width", "Petal Length", "Petal Width"});
+        gbc.gridx = 1;
+        panel.add(feature2ComboBox, gbc);
+
+        // Predict button
+        gbc.gridx = 0; gbc.gridy = 6; gbc.gridwidth = 2;
         JButton predictButton = new JButton("Predict");
         panel.add(predictButton, gbc);
 
-        // Row 4: Result label
-        gbc.gridy = 3;
+        // Prediction result
+        gbc.gridy = 7;
         resultLabel = new JLabel("Result: ");
         resultLabel.setFont(new Font("SansSerif", Font.BOLD, 14));
         panel.add(resultLabel, gbc);
 
-        // Row 5: Show Plot button
-        gbc.gridy = 4;
+        // Show plot button
+        gbc.gridy = 8;
         JButton showPlotButton = new JButton("Show Plot");
         panel.add(showPlotButton, gbc);
 
         add(panel);
 
-        // Button Actions
-        predictButton.addActionListener(new ActionListener() {
-            @Override
-            public void actionPerformed(ActionEvent e) {
-                predictClass();
-            }
-        });
-
-        showPlotButton.addActionListener(new ActionListener() {
-            @Override
-            public void actionPerformed(ActionEvent e) {
-                showPlot();
-            }
-        });
+        predictButton.addActionListener(e -> predictClass());
+        showPlotButton.addActionListener(e -> showPlot());
 
         setVisible(true);
     }
 
     private void predictClass() {
         try {
-            double feature1 = Double.parseDouble(feature1Field.getText());
-            double feature2 = Double.parseDouble(feature2Field.getText());
+            double f1 = Double.parseDouble(feature1Field.getText());
+            double f2 = Double.parseDouble(feature2Field.getText());
+            double f3 = Double.parseDouble(feature3Field.getText());
+            double f4 = Double.parseDouble(feature4Field.getText());
 
-            double[] input = {feature1, feature2};
+            double[] input = {f1, f2, f3, f4};
             int prediction = perceptron.predict(input);
-
             String predictedClass = (prediction == 1) ? "Setosa (1)" : "Versicolor (0)";
             resultLabel.setText("Result: " + predictedClass);
         } catch (NumberFormatException ex) {
@@ -99,22 +100,48 @@ public class PerceptronGUI extends JFrame {
     }
 
     private void showPlot() {
-        double[] input = null;
         try {
-            input = new double[]{
+            int feature1Index = feature1ComboBox.getSelectedIndex();
+            int feature2Index = feature2ComboBox.getSelectedIndex();
+
+            double[][] projectedTestData = new double[testData.length][2];
+            for (int i = 0; i < testData.length; i++) {
+                projectedTestData[i][0] = testData[i][feature1Index];
+                projectedTestData[i][1] = testData[i][feature2Index];
+            }
+
+            double[][] projectedTrainData = new double[testData.length][2];
+            int[] trainLabels = new int[testLabels.length];
+            for (int i = 0; i < testData.length; i++) {
+                projectedTrainData[i][0] = testData[i][feature1Index];
+                projectedTrainData[i][1] = testData[i][feature2Index];
+                trainLabels[i] = testLabels[i];
+            }
+
+            Perceptron perceptron2D = new Perceptron(2, 0.5, 0.3);
+            perceptron2D.train(projectedTrainData, trainLabels, 100);
+
+            double[] fullInput = new double[]{
                     Double.parseDouble(feature1Field.getText()),
-                    Double.parseDouble(feature2Field.getText())
+                    Double.parseDouble(feature2Field.getText()),
+                    Double.parseDouble(feature3Field.getText()),
+                    Double.parseDouble(feature4Field.getText())
             };
-        } catch (NumberFormatException e) {
-            e.printStackTrace();
+
+            double[] input2D = new double[]{
+                    fullInput[feature1Index],
+                    fullInput[feature2Index]
+            };
+
+            JFrame plotFrame = new JFrame("Decision Boundary Plot");
+            plotFrame.setDefaultCloseOperation(JFrame.DISPOSE_ON_CLOSE);
+            plotFrame.add(new PlotPanel(projectedTestData, testLabels, perceptron2D, input2D, 0, 1));
+            plotFrame.pack();
+            plotFrame.setLocationRelativeTo(null);
+            plotFrame.setVisible(true);
+
+        } catch (NumberFormatException ex) {
+            JOptionPane.showMessageDialog(this, "Enter numeric values for selected plot features.", "Input Error", JOptionPane.ERROR_MESSAGE);
         }
-
-        JFrame plotFrame = new JFrame("Decision Boundary Plot");
-        plotFrame.setDefaultCloseOperation(JFrame.DISPOSE_ON_CLOSE);
-        plotFrame.add(new PlotPanel(testData, testLabels, perceptron, input));
-        plotFrame.pack();
-        plotFrame.setLocationRelativeTo(null);
-        plotFrame.setVisible(true);
     }
-
 }
